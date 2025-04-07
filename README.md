@@ -1,10 +1,10 @@
 # BIGFOOT Backend API
 
-📌 Sobre
+# 📌 Sobre
 
-O Bigfoot Backend API é a API responsável por fornecer dados e serviços para o aplicativo BIGFOOT LoL App. Ele gerencia informações sobre notícias, lineup, próximos jogos e contribuições, permitindo a integração entre o aplicativo e o servidor.
+O BIGFOOT Backend API é a API responsável por fornecer dados e serviços para o aplicativo BIGFOOT LoL App. Ele gerencia informações sobre notícias, lineup, próximos jogos e contribuições, permitindo a integração entre o aplicativo e o servidor.
 
-🚀 Tecnologias Utilizadas
+# 🚀 Tecnologias Utilizadas
 
 Node.js com Express.js (Backend rápido e escalável)
 
@@ -16,7 +16,7 @@ CORS para permitir requisições entre domínios
 
 Dotenv para gerenciamento de variáveis de ambiente
 
-🔧 Instalação e Configuração
+# 🔧 Instalação e Configuração
 
 1️⃣ Clonar o repositório
 
@@ -39,7 +39,7 @@ npm start
 
 O backend estará disponível em: http://localhost:3000
 
-📡 Rotas da API
+# 📡 Rotas da API
 
 ✅ Notícias
 
@@ -59,7 +59,7 @@ GET /matches → Lista os próximos jogos da equipe
 
 POST /donate → Registra uma doação
 
-🔒 Autenticação
+# 🔒 Autenticação
 
 Para realizar requisições protegidas, utilize JWT no header:
 
@@ -67,7 +67,7 @@ Para realizar requisições protegidas, utilize JWT no header:
   "Authorization": "Bearer SEU_TOKEN"
 }
 
-📜 Licença
+# 📜 Licença
 
 Este projeto está sob a licença MIT. Sinta-se à vontade para contribuir!
 
