@@ -1,50 +1,48 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const { kv } = require('@vercel/kv');
 const router = express.Router();
 
-const DATA_FILE = path.join(__dirname, 'redemptions.json');
+// GET: Retorna todos os resgates
+router.get('/', async (req, res) => {
+  try {
+    const keys = await kv.keys('redemption:*');
+    const redemptions = await Promise.all(keys.map(async (key) => {
+      const value = await kv.get(key);
+      return value;
+    }));
 
-if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify([]));
-}
-
-function readRedemptions() {
-  const data = fs.readFileSync(DATA_FILE);
-  return JSON.parse(data);
-}
-
-function writeRedemptions(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-router.get('/', (req, res) => {
-  const redemptions = readRedemptions();
-  res.json(redemptions);
+    res.json(redemptions);
+  } catch (error) {
+    console.error('Erro ao buscar resgates:', error);
+    res.status(500).json({ message: 'Erro ao buscar resgates' });
+  }
 });
 
-router.post('/', (req, res) => {
+// POST: Cadastra um novo resgate
+router.post('/', async (req, res) => {
   const { userId, product, date } = req.body;
 
   if (!userId || !product || !date) {
     return res.status(400).json({ message: 'Campos obrigatórios: userId, product, date' });
   }
 
-  const redemptions = readRedemptions();
+  const key = `redemption:${userId}:${product}:${date}`;
 
-  const alreadyRedeemed = redemptions.find(
-    (r) => r.userId === userId && r.product === product && r.date === date
-  );
+  try {
+    const existing = await kv.get(key);
 
-  if (alreadyRedeemed) {
-    return res.status(409).json({ message: 'Produto já resgatado por este usuário na mesma data.' });
+    if (existing) {
+      return res.status(409).json({ message: 'Produto já resgatado por este usuário na mesma data.' });
+    }
+
+    const newRedemption = { userId, product, date };
+    await kv.set(key, newRedemption);
+
+    res.status(201).json(newRedemption);
+  } catch (error) {
+    console.error('Erro ao salvar resgate:', error);
+    res.status(500).json({ message: 'Erro ao salvar resgate' });
   }
-
-  const newRedemption = { userId, product, date };
-  redemptions.push(newRedemption);
-  writeRedemptions(redemptions);
-
-  res.status(201).json(newRedemption);
 });
 
 module.exports = router;
