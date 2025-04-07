@@ -63,7 +63,7 @@ app.post('/upcoming-games', (req, res) => {
 });
 
 // Controle de resgates (usando Vercel KV)
-app.use('/api/redemptions', redemptionsRouter);
+app.use('/redemptions', redemptionsRouter);
 
 // Inicialização
 const PORT = process.env.PORT || 3000;
