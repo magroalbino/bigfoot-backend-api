@@ -2,23 +2,20 @@ const express = require('express');
 const { kv } = require('@vercel/kv');
 const router = express.Router();
 
-// GET: Retorna todos os resgates
+const REDEMPTIONS_KEY = 'redemptions';
+
+// Obter todos os resgates
 router.get('/', async (req, res) => {
   try {
-    const keys = await kv.keys('redemption:*');
-    const redemptions = await Promise.all(keys.map(async (key) => {
-      const value = await kv.get(key);
-      return value;
-    }));
-
+    const redemptions = await kv.get(REDEMPTIONS_KEY) || [];
     res.json(redemptions);
   } catch (error) {
-    console.error('Erro ao buscar resgates:', error);
-    res.status(500).json({ message: 'Erro ao buscar resgates' });
+    console.error('Erro ao obter resgates:', error);
+    res.status(500).json({ message: 'Erro ao obter resgates.' });
   }
 });
 
-// POST: Cadastra um novo resgate
+// Criar novo resgate
 router.post('/', async (req, res) => {
   const { userId, product, date } = req.body;
 
@@ -26,22 +23,26 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ message: 'Campos obrigatórios: userId, product, date' });
   }
 
-  const key = `redemption:${userId}:${product}:${date}`;
-
   try {
-    const existing = await kv.get(key);
+    const redemptions = await kv.get(REDEMPTIONS_KEY) || [];
 
-    if (existing) {
+    const alreadyRedeemed = redemptions.find(
+      (r) => r.userId === userId && r.product === product && r.date === date
+    );
+
+    if (alreadyRedeemed) {
       return res.status(409).json({ message: 'Produto já resgatado por este usuário na mesma data.' });
     }
 
     const newRedemption = { userId, product, date };
-    await kv.set(key, newRedemption);
+    redemptions.push(newRedemption);
+
+    await kv.set(REDEMPTIONS_KEY, redemptions);
 
     res.status(201).json(newRedemption);
   } catch (error) {
-    console.error('Erro ao salvar resgate:', error);
-    res.status(500).json({ message: 'Erro ao salvar resgate' });
+    console.error('Erro ao criar resgate:', error);
+    res.status(500).json({ message: 'Erro ao criar resgate.' });
   }
 });
 
