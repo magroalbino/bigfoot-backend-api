@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const redemptionsRouter = require('./redemptions');
+// const redemptionsRouter = require('./redemptions'); // Comentado temporariamente
 
 const app = express();
 
@@ -8,11 +8,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/*
 // Checagem das variáveis de ambiente do Vercel KV
 if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
   console.error('❌ As variáveis de ambiente KV_REST_API_URL e/ou KV_REST_API_TOKEN não estão configuradas.');
   process.exit(1); // Encerra a aplicação se não estiverem definidas
 }
+*/
 
 // Dados mockados para /news e /upcoming-games
 let newsData = [
@@ -62,8 +64,10 @@ app.post('/upcoming-games', (req, res) => {
   res.status(201).json(newGame);
 });
 
+/*
 // Controle de resgates (usando Vercel KV)
 app.use('/redemptions', redemptionsRouter);
+*/
 
 // Inicialização
 const PORT = process.env.PORT || 3000;
