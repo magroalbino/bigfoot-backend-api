@@ -4,12 +4,20 @@
     {
       "src": "index.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "redemptions.mjs",
+      "use": "@vercel/edge"
     }
   ],
   "routes": [
     {
+      "src": "/redemptions",
+      "dest": "redemptions.mjs"
+    },
+    {
       "src": "/(.*)",
-      "dest": "index.js"
+      "dest": "/index.js"
     }
   ]
 }
