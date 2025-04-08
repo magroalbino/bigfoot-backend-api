@@ -96,11 +96,15 @@ app.post('/upcoming-games', (req, res) => {
 // ✅ Rota de controle de resgates (Vercel KV opcional)
 if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
   try {
+    console.log('🔁 Tentando carregar redemptions...');
     const redemptionsRouter = require('./redemptions');
     app.use('/redemptions', redemptionsRouter);
+    console.log('✅ Rota /redemptions ativa!');
   } catch (err) {
-    console.warn('⚠️ Não foi possível carregar redemptions:', err.message);
+    console.error('❌ Erro ao carregar redemptions:', err);
   }
+} else {
+  console.warn('⚠️ Variáveis de ambiente KV_REST_API_URL e/ou KV_REST_API_TOKEN ausentes.');
 }
 
 const PORT = process.env.PORT || 3000;
