@@ -1,7 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const redemptionsRouter = require('./redemptions');
-
 const app = express();
 
 app.use(cors());
@@ -95,8 +93,15 @@ app.post('/upcoming-games', (req, res) => {
   res.status(201).json(newGame);
 });
 
-// ✅ Rota de controle de resgates com Vercel KV
-app.use('/redemptions', redemptionsRouter);
+// ✅ Rota de controle de resgates (Vercel KV opcional)
+if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  try {
+    const redemptionsRouter = require('./redemptions');
+    app.use('/redemptions', redemptionsRouter);
+  } catch (err) {
+    console.warn('⚠️ Não foi possível carregar redemptions:', err.message);
+  }
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
