@@ -47,4 +47,5 @@ router.post('/', async (req, res) => {
   }
 });
 
+// ⚠️ Esta parte é fundamental para permitir que o index.js use esse roteador
 module.exports = router;
