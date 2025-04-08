@@ -1,50 +1,41 @@
-const express = require('express');
-const { kv } = require('@vercel/kv');
+import { kv } from '@vercel/kv';
 
-const router = express.Router();
-
-const REDEMPTIONS_KEY = 'redemptions';
-
-// GET /redemptions - lista todos os resgates
-router.get('/', async (req, res) => {
-  try {
-    const redemptions = await kv.get(REDEMPTIONS_KEY) || [];
-    res.json(redemptions);
-  } catch (error) {
-    console.error('Erro ao obter resgates:', error);
-    res.status(500).json({ message: 'Erro ao obter resgates.' });
-  }
-});
-
-// POST /redemptions - cria um novo resgate
-router.post('/', async (req, res) => {
-  const { userId, product, date } = req.body;
-
-  if (!userId || !product || !date) {
-    return res.status(400).json({ message: 'Campos obrigatórios: userId, product, date' });
+export default async function handler(req) {
+  if (req.method === 'GET') {
+    const data = await kv.get('redemptions') || [];
+    return new Response(JSON.stringify(data), {
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
-  try {
-    const redemptions = await kv.get(REDEMPTIONS_KEY) || [];
+  if (req.method === 'POST') {
+    const { userId, product, date } = await req.json();
 
-    const alreadyRedeemed = redemptions.find(
-      (r) => r.userId === userId && r.product === product && r.date === date
-    );
-
-    if (alreadyRedeemed) {
-      return res.status(409).json({ message: 'Produto já foi resgatado por este usuário nesta data.' });
+    if (!userId || !product || !date) {
+      return new Response(JSON.stringify({ message: 'Campos obrigatórios ausentes' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    const newRedemption = { userId, product, date };
-    redemptions.push(newRedemption);
+    const current = await kv.get('redemptions') || [];
+    const exists = current.find(r => r.userId === userId && r.product === product && r.date === date);
 
-    await kv.set(REDEMPTIONS_KEY, redemptions);
+    if (exists) {
+      return new Response(JSON.stringify({ message: 'Já resgatado' }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
-    res.status(201).json(newRedemption);
-  } catch (error) {
-    console.error('Erro ao criar resgate:', error);
-    res.status(500).json({ message: 'Erro ao criar resgate.' });
+    const updated = [...current, { userId, product, date }];
+    await kv.set('redemptions', updated);
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
-});
 
-module.exports = router;
+  return new Response('Method Not Allowed', { status: 405 });
+}
