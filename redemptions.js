@@ -1,13 +1,19 @@
 const express = require('express');
+const { createRequire } = require('module');
 const router = express.Router();
 
 const REDEMPTIONS_KEY = 'redemptions';
 
+// ✅ Cria uma função para importar dinamicamente
+const requireESM = createRequire(import.meta.url || __filename);
+
 router.get('/', async (req, res) => {
   try {
-    const { kv } = await import('@vercel/kv'); // ✅ IMPORTAÇÃO DINÂMICA
-    const data = await kv.get(REDEMPTIONS_KEY) || [];
-    res.json(data);
+    const kvModule = await import('@vercel/kv');
+    const kv = kvModule.kv;
+
+    const redemptions = await kv.get(REDEMPTIONS_KEY);
+    res.json(redemptions || []);
   } catch (error) {
     console.error('❌ Erro ao obter resgates:', error);
     res.status(500).json({ message: 'Erro ao obter resgates.' });
@@ -22,7 +28,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const { kv } = await import('@vercel/kv'); // ✅ IMPORTAÇÃO DINÂMICA
+    const kvModule = await import('@vercel/kv');
+    const kv = kvModule.kv;
+
     const redemptions = await kv.get(REDEMPTIONS_KEY) || [];
 
     const alreadyRedeemed = redemptions.find(
