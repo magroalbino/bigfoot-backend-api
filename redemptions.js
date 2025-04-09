@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
+
 const REDEMPTIONS_KEY = 'redemptions';
 
-// Função segura para importar o Vercel KV dinamicamente
+// Função para importar dinamicamente o Vercel KV (modo compatível com CommonJS)
 async function getKV() {
   try {
-    const { createRequire } = await import('module');
-    const require = createRequire(import.meta.url);
-    return require('@vercel/kv');
+    const { kv } = await import('@vercel/kv');
+    return kv;
   } catch (err) {
-    console.error('❌ Falha ao carregar @vercel/kv:', err);
-    throw new Error('KV não está disponível.');
+    console.error('❌ Falha ao importar @vercel/kv:', err);
+    throw new Error('Módulo @vercel/kv não disponível.');
   }
 }
 
@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
     const data = await kv.get(REDEMPTIONS_KEY) || [];
     res.json(data);
   } catch (error) {
-    console.error('❌ Erro ao obter resgates:', error);
+    console.error('❌ Erro ao obter resgates:', error.message);
     res.status(500).json({ message: 'Erro ao obter resgates.' });
   }
 });
@@ -43,16 +43,16 @@ router.post('/', async (req, res) => {
     );
 
     if (alreadyRedeemed) {
-      return res.status(409).json({ message: 'Produto já foi resgatado por este usuário nesta data.' });
+      return res.status(409).json({ message: 'Produto já resgatado por este usuário nesta data.' });
     }
 
     const newRedemption = { userId, product, date };
     redemptions.push(newRedemption);
-
     await kv.set(REDEMPTIONS_KEY, redemptions);
+
     res.status(201).json(newRedemption);
   } catch (error) {
-    console.error('❌ Erro ao criar resgate:', error);
+    console.error('❌ Erro ao criar resgate:', error.message);
     res.status(500).json({ message: 'Erro ao criar resgate.' });
   }
 });
