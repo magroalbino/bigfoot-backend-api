@@ -15,23 +15,23 @@ app.get('/', (req, res) => {
 const newsData = [
   {
     id: '1',
-    date: '2025-02-12',
+    date: '12-02-2025',
     title: 'BIGFOOT participa do campeonato Forja do Ornn',
-    author: 'por apu apustaja',
+    author: 'apu apustaja',
     details: 'BIGFOOT se prepara para o maior evento do ano, buscando alavancar sua participação no campeonato.',
   },
   {
     id: '2',
-    date: '2025-02-13',
+    date: '13-02-2025',
     title: 'BIGFOOT e seu primeiro app',
-    author: 'por apu apustaja',
+    author: 'apu apustaja',
     details: 'O time BIGFOOT apresenta seu primeiro aplicativo, uma ferramenta para conectar fãs e jogadores.',
   },
   {
     id: '3',
-    date: '2025-02-14',
+    date: '14-02-2025',
     title: 'BIGFOOT busca novos patrocinadores',
-    author: 'por apu apustaja',
+    author: 'apu apustaja',
     details: 'A organização BIGFOOT está em busca de novos parceiros e patrocinadores para expandir sua presença.',
   }
 ];
@@ -41,7 +41,7 @@ const upcomingGames = [
   {
     id: '1',
     teams: 'BIGFOOT Esports x ALPHA Esports',
-    date: '2025-02-20',
+    date: '20-02-2025',
     time: '18:00',
     championship: 'Liga Nacional',
     twitchLink: 'https://www.twitch.tv/bigfootesports',
@@ -49,7 +49,7 @@ const upcomingGames = [
   {
     id: '2',
     teams: 'BIGFOOT Esports x BETA Esports',
-    date: '2025-02-25',
+    date: '25-02-2025',
     time: '20:00',
     championship: 'Liga Internacional',
     twitchLink: 'https://www.twitch.tv/bigfootesports',
@@ -57,7 +57,7 @@ const upcomingGames = [
   {
     id: '3',
     teams: 'BIGFOOT Esports x GAMMA Esports',
-    date: '2025-02-28',
+    date: '28-02-2025',
     time: '21:00',
     championship: 'Copa do Mundo de Esports',
     twitchLink: 'https://www.twitch.tv/bigfootesports',
