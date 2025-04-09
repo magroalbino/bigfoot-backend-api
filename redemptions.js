@@ -1,25 +1,32 @@
 const express = require('express');
-const { createRequire } = require('module');
 const router = express.Router();
-
 const REDEMPTIONS_KEY = 'redemptions';
 
-// ✅ Cria uma função para importar dinamicamente
-const requireESM = createRequire(import.meta.url || __filename);
+// Função segura para importar o Vercel KV dinamicamente
+async function getKV() {
+  try {
+    const { createRequire } = await import('module');
+    const require = createRequire(import.meta.url);
+    return require('@vercel/kv');
+  } catch (err) {
+    console.error('❌ Falha ao carregar @vercel/kv:', err);
+    throw new Error('KV não está disponível.');
+  }
+}
 
+// GET /redemptions - Lista todos os resgates
 router.get('/', async (req, res) => {
   try {
-    const kvModule = await import('@vercel/kv');
-    const kv = kvModule.kv;
-
-    const redemptions = await kv.get(REDEMPTIONS_KEY);
-    res.json(redemptions || []);
+    const kv = await getKV();
+    const data = await kv.get(REDEMPTIONS_KEY) || [];
+    res.json(data);
   } catch (error) {
     console.error('❌ Erro ao obter resgates:', error);
     res.status(500).json({ message: 'Erro ao obter resgates.' });
   }
 });
 
+// POST /redemptions - Cria um novo resgate
 router.post('/', async (req, res) => {
   const { userId, product, date } = req.body;
 
@@ -28,9 +35,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const kvModule = await import('@vercel/kv');
-    const kv = kvModule.kv;
-
+    const kv = await getKV();
     const redemptions = await kv.get(REDEMPTIONS_KEY) || [];
 
     const alreadyRedeemed = redemptions.find(
