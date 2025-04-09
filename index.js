@@ -64,6 +64,9 @@ const upcomingGames = [
   }
 ];
 
+// ✅ Dados mockados para comentários (vazio)
+const commentsData = [];
+
 // ✅ Rotas para notícias
 app.get('/news', (req, res) => {
   res.json(newsData);
@@ -78,6 +81,42 @@ app.post('/news', (req, res) => {
   const newNews = { id, date, title, author, details };
   newsData.push(newNews);
   res.status(201).json(newNews);
+});
+
+// ✅ Rotas para comentários de notícias
+app.get('/news/:newsId/comments', (req, res) => {
+  const { newsId } = req.params;
+  const newsExists = newsData.some(news => news.id === newsId);
+  if (!newsExists) {
+    return res.status(404).json({ error: 'Notícia não encontrada' });
+  }
+  const comments = commentsData.filter(comment => comment.newsId === newsId);
+  res.json(comments);
+});
+
+app.post('/news/:newsId/comments', (req, res) => {
+  const { newsId } = req.params;
+  const { text, author } = req.body;
+
+  if (!text || !author) {
+    return res.status(400).json({ error: 'Texto e autor são obrigatórios' });
+  }
+
+  const newsExists = newsData.some(news => news.id === newsId);
+  if (!newsExists) {
+    return res.status(404).json({ error: 'Notícia não encontrada' });
+  }
+
+  const newComment = {
+    id: String(commentsData.length + 1),
+    text,
+    author,
+    newsId,
+    createdAt: new Date().toISOString(),
+  };
+
+  commentsData.push(newComment);
+  res.status(201).json(newComment);
 });
 
 // ✅ Rotas para próximos jogos
