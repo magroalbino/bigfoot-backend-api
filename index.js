@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
+// ✅ Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -11,7 +12,7 @@ app.get('/', (req, res) => {
 });
 
 // ✅ Dados mockados para notícias
-let newsData = [
+const newsData = [
   {
     id: '1',
     date: '2025-02-12',
@@ -36,7 +37,7 @@ let newsData = [
 ];
 
 // ✅ Dados mockados para próximos jogos
-let upcomingGames = [
+const upcomingGames = [
   {
     id: '1',
     teams: 'BIGFOOT Esports x ALPHA Esports',
@@ -73,6 +74,7 @@ app.post('/news', (req, res) => {
   if (!id || !date || !title || !author || !details) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
   }
+
   const newNews = { id, date, title, author, details };
   newsData.push(newNews);
   res.status(201).json(newNews);
@@ -88,28 +90,29 @@ app.post('/upcoming-games', (req, res) => {
   if (!id || !teams || !date || !time || !championship || !twitchLink) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
   }
+
   const newGame = { id, teams, date, time, championship, twitchLink };
   upcomingGames.push(newGame);
   res.status(201).json(newGame);
 });
 
-// ✅ Rota de controle de resgates (Vercel KV opcional)
+// ✅ Rota de controle de resgates (condicional ao Vercel KV)
 if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
   try {
-    console.log('🔁 Tentando carregar redemptions...');
     const redemptionsRouter = require('./redemptions');
     app.use('/redemptions', redemptionsRouter);
-    console.log('✅ Rota /redemptions ativa!');
+    console.log('✅ Rota /redemptions carregada com sucesso!');
   } catch (err) {
-    console.error('❌ Erro ao carregar redemptions:', err);
+    console.error('❌ Erro ao carregar redemptions:', err.message);
   }
 } else {
-  console.warn('⚠️ Variáveis de ambiente KV_REST_API_URL e/ou KV_REST_API_TOKEN ausentes.');
+  console.warn('⚠️ Variáveis KV_REST_API_URL e/ou KV_REST_API_TOKEN não configuradas. Rota /redemptions não ativada.');
 }
 
+// ✅ Inicialização do servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ API rodando na porta ${PORT}`);
+  console.log(`🚀 API rodando na porta ${PORT}`);
 });
 
 module.exports = app;
