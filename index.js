@@ -1,10 +1,17 @@
 const express = require('express');
 const cors = require('cors');
+const { createClient } = require('@vercel/kv');
 const app = express();
 
 // ✅ Middleware
 app.use(cors());
 app.use(express.json());
+
+// ✅ Configuração do Vercel KV
+const kv = createClient({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
 
 // ✅ Rota raiz
 app.get('/', (req, res) => {
@@ -64,9 +71,6 @@ const upcomingGames = [
   }
 ];
 
-// ✅ Dados mockados para comentários (vazio)
-const commentsData = [];
-
 // ✅ Rotas para notícias
 app.get('/news', (req, res) => {
   res.json(newsData);
@@ -83,18 +87,27 @@ app.post('/news', (req, res) => {
   res.status(201).json(newNews);
 });
 
-// ✅ Rotas para comentários de notícias
-app.get('/news/:newsId/comments', (req, res) => {
+// ✅ Rotas para comentários de notícias com Vercel KV
+app.get('/news/:newsId/comments', async (req, res) => {
   const { newsId } = req.params;
   const newsExists = newsData.some(news => news.id === newsId);
   if (!newsExists) {
     return res.status(404).json({ error: 'Notícia não encontrada' });
   }
-  const comments = commentsData.filter(comment => comment.newsId === newsId);
-  res.json(comments);
+
+  try {
+    // Recupera todos os comentários da chave `comments:${newsId}`
+    const comments = await kv.lrange(`comments:${newsId}`, 0, -1);
+    // Desserializa os comentários de strings JSON para objetos
+    const parsedComments = comments.map(comment => JSON.parse(comment));
+    res.json(parsedComments);
+  } catch (error) {
+    console.error('Erro ao recuperar comentários:', error);
+    res.status(500).json({ error: 'Erro interno ao carregar comentários' });
+  }
 });
 
-app.post('/news/:newsId/comments', (req, res) => {
+app.post('/news/:newsId/comments', async (req, res) => {
   const { newsId } = req.params;
   const { text, author } = req.body;
 
@@ -107,16 +120,24 @@ app.post('/news/:newsId/comments', (req, res) => {
     return res.status(404).json({ error: 'Notícia não encontrada' });
   }
 
-  const newComment = {
-    id: String(commentsData.length + 1),
-    text,
-    author,
-    newsId,
-    createdAt: new Date().toISOString(),
-  };
+  try {
+    // Gera um ID único para o comentário (usando contador global no KV)
+    const commentCount = await kv.incr('comment:counter');
+    const newComment = {
+      id: String(commentCount),
+      text,
+      author,
+      newsId,
+      createdAt: new Date().toISOString(),
+    };
 
-  commentsData.push(newComment);
-  res.status(201).json(newComment);
+    // Adiciona o comentário à lista no Vercel KV como string JSON
+    await kv.lpush(`comments:${newsId}`, JSON.stringify(newComment));
+    res.status(201).json(newComment);
+  } catch (error) {
+    console.error('Erro ao salvar comentário:', error);
+    res.status(500).json({ error: 'Erro interno ao salvar comentário' });
+  }
 });
 
 // ✅ Rotas para próximos jogos
